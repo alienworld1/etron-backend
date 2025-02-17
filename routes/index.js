@@ -1,9 +1,6 @@
 const router = require('express').Router();
+const balanceController = require('../controllers/balance');
 
-router.get('/', (req, res) => {
-  res.send({
-    message: 'Hello, world!',
-  });
-});
+router.get('/balance/:address', balanceController.getBalance);
 
 module.exports = router;
