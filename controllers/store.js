@@ -2,12 +2,12 @@ const { PrismaClient } = require('@prisma/client');
 const asyncHandler = require('express-async-handler');
 const ethers = require('ethers');
 
-const { provider, nftContract } = require('../utils/web3');
+const { waitForPayment, nftContract } = require('../utils/web3');
 
 const prisma = new PrismaClient();
 
 const purchasePost = asyncHandler(async (req, res, next) => {
-  const { nftId, fromUserId: buyerId } = req.body;
+  const { nftId, buyerId } = req.body;
 
   const buyer = await prisma.user.findUnique({
     where: {
@@ -35,19 +35,32 @@ const purchasePost = asyncHandler(async (req, res, next) => {
     });
   }
 
-  const priceInETH = ethers.parseEther(nft.price);
+  const priceInETH = ethers.parseEther(nft.price.toString());
 
-  const buyerWalletBalance = await provider.getBalance(buyer.walletAddress);
+  const sellerAddress = process.env.WALLET_ADDRESS;
 
-  if (priceInETH > buyerWalletBalance) {
+  console.log('Awaiting payment...');
+  const paymentReceived = await waitForPayment(
+    buyer.walletAddress,
+    sellerAddress,
+    priceInETH,
+  );
+
+  if (!paymentReceived) {
     return res.status(400).json({
       success: false,
-      message: 'Insufficient balance',
+      message: 'Payment not received or insufficient funds',
     });
   }
 
-  const transaction = await nftContract.mint(buyer.walletAddress);
+  console.log('Minting NFT...');
+  const transaction = await nftContract.safeMint(
+    buyer.walletAddress,
+    nft.metadataUrl,
+  );
+  console.log('Waiting...');
   await transaction.wait();
+  console.log('Done');
 
   const order = await prisma.order.create({
     data: {
@@ -88,6 +101,11 @@ const purchasePost = asyncHandler(async (req, res, next) => {
       },
       data: {
         minted: true,
+        owner: {
+          connect: {
+            id: buyerId,
+          },
+        },
       },
     }),
   ]);

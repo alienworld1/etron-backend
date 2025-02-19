@@ -29,12 +29,12 @@ model User {
 model NFT {
   id          String   @id @default(cuid())
   name        String
-  price       Int
+  price       Decimal
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   description String?
   imageUrl    String?
-  metadataUrl String?
+  metadataUrl String
   minted      Boolean  @default(false)
   orders      Order[]
   ownerId     String?
@@ -53,7 +53,7 @@ model Order {
   nft             NFT           @relation(fields: [nftId], references: [id])
   buyerId         String
   buyer           User          @relation(fields: [buyerId], references: [id])
-  price           Int
+  price           Decimal
   status          OrderStatus   @default(pending)
   transactionHash String?
   createdAt       DateTime      @default(now())
@@ -67,7 +67,7 @@ model Transaction {
   order                 Order    @relation(fields: [orderId], references: [id])
   fromAddress           String
   toAddress             String
-  amount                Int
+  amount                Decimal
   transactionHash       String
   transactionSuccessful Boolean
   createdAt             DateTime @default(now())

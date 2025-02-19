@@ -12,7 +12,7 @@ const nftGet = asyncHandler(async (req, res, next) => {
   const id = req.params.id ?? '';
   const nft = await prisma.nFT.findUnique({
     where: {
-      id: parseInt(id),
+      id,
     },
   });
   return res.json(nft);
