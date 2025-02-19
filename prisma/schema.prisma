@@ -13,35 +13,62 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Sprite {
-  id          String           @id @default(cuid())
-  name        String
-  description String
-  image       String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  instances   SpriteInstance[]
-}
-
 model User {
-  id                   String           @id @default(cuid())
-  username             String           @unique
-  displayName          String
-  email                String           @unique
-  password             String
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
-  walletAddress        String           @unique
-  spriteInstancesOwned SpriteInstance[]
+  id            String   @id @default(cuid())
+  username      String   @unique
+  displayName   String
+  email         String   @unique
+  password      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  walletAddress String   @unique
+  orders        Order[]
+  ownedNFTs     NFT[]
 }
 
-model SpriteInstance {
-  id        String   @id @default(cuid())
-  spriteId  String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Sprite    Sprite   @relation(fields: [spriteId], references: [id])
-  User      User?    @relation(fields: [userId], references: [id])
-  price     Int
+model NFT {
+  id          String   @id @default(cuid())
+  name        String
+  price       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String?
+  imageUrl    String?
+  metadataUrl String?
+  minted      Boolean  @default(false)
+  orders      Order[]
+  ownerId     String?
+  owner       User?    @relation(fields: [ownerId], references: [id])
+}
+
+enum OrderStatus {
+  pending
+  completed
+  cancelled
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  nftId           String
+  nft             NFT           @relation(fields: [nftId], references: [id])
+  buyerId         String
+  buyer           User          @relation(fields: [buyerId], references: [id])
+  price           Int
+  status          OrderStatus   @default(pending)
+  transactionHash String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  transaction     Transaction[]
+}
+
+model Transaction {
+  id                    String   @id @default(cuid())
+  orderId               String
+  order                 Order    @relation(fields: [orderId], references: [id])
+  fromAddress           String
+  toAddress             String
+  amount                Int
+  transactionHash       String
+  transactionSuccessful Boolean
+  createdAt             DateTime @default(now())
 }

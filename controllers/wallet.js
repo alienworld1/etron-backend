@@ -2,8 +2,7 @@ const asyncHandler = require('express-async-handler');
 const ethers = require('ethers');
 const { body, validationResult } = require('express-validator');
 
-const provider = require('../utils/ether-provider');
-const wallet = require('../utils/wallet');
+const { provider, wallet } = require('../utils/web3');
 
 const getBalance = asyncHandler(async (req, res) => {
   const { address } = req.params;
