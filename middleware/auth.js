@@ -25,7 +25,6 @@ const authenticateToken = asyncHandler(async (req, res, next) => {
 
 const verifyApiKey = asyncHandler(async (req, res, next) => {
   const { apiKey } = req.query;
-
   if (apiKey !== process.env.API_KEY) {
     return res.status(403).json({
       success: false,

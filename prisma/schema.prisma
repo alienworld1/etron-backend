@@ -13,16 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Sprite {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  image       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  ownedBy     User[]
-}
-
 model User {
   id            String   @id @default(cuid())
   username      String   @unique
@@ -32,5 +22,53 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   walletAddress String   @unique
-  spritesOwned  Sprite[]
+  orders        Order[]
+  ownedNFTs     NFT[]
+}
+
+model NFT {
+  id          String   @id @default(cuid())
+  name        String
+  price       Decimal
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String?
+  imageUrl    String?
+  metadataUrl String
+  minted      Boolean  @default(false)
+  orders      Order[]
+  ownerId     String?
+  owner       User?    @relation(fields: [ownerId], references: [id])
+}
+
+enum OrderStatus {
+  pending
+  completed
+  cancelled
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  nftId           String
+  nft             NFT           @relation(fields: [nftId], references: [id])
+  buyerId         String
+  buyer           User          @relation(fields: [buyerId], references: [id])
+  price           Decimal
+  status          OrderStatus   @default(pending)
+  transactionHash String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  transaction     Transaction[]
+}
+
+model Transaction {
+  id                    String   @id @default(cuid())
+  orderId               String
+  order                 Order    @relation(fields: [orderId], references: [id])
+  fromAddress           String
+  toAddress             String
+  amount                Decimal
+  transactionHash       String
+  transactionSuccessful Boolean
+  createdAt             DateTime @default(now())
 }
