@@ -1,9 +1,6 @@
 const ethers = require('ethers');
 require('dotenv').config();
 
-const provider = new ethers.InfuraProvider(
-  process.env.NETWORK,
-  process.env.INFURA_PROJECT_ID,
-);
+const provider = new ethers.JsonRpcProvider(process.env.ANKR_API_ENDPOINT);
 
 module.exports = provider;
